@@ -86,7 +86,7 @@ namespace integrals {
     std::vector<double> divide_region(size_t n, double y_start, double y_end) {
         std::vector<double> regions(n + 1);
         for (size_t i = 0; i != n; i++) {
-            regions[i] = y_start + (double) i * (y_end - y_start);
+            regions[i] = y_start + (double) i * ((y_end - y_start) / n);
         }
         regions[n] = y_end;
         return regions;
@@ -100,25 +100,32 @@ namespace integrals {
                                 size_t init_steps_y, size_t max_iter) {
 
         std::vector<std::thread> threads(thread_count);
-        std::vector<double> results(thread_count);
+        std::vector<std::tuple<double, double, double>> results(thread_count);
 
         // dividing the region into smaller pieces
         auto regions = divide_region(thread_count, y_start, y_end);
+        auto new_steps_y = ceil((double)init_steps_y / (double)thread_count);
         auto compute_and_write_to = [&function, abs_err, rel_err, x_start, x_end, &regions,
-                init_steps_x, init_steps_y, max_iter, &results](size_t idx) {
+                init_steps_x, new_steps_y, max_iter, &results](size_t idx) {
             results[idx] = calculate_integral(function, abs_err, rel_err, x_start, x_end, regions[idx],
-                                              regions[idx + 1], init_steps_x, init_steps_y, max_iter);
+                                              regions[idx + 1], init_steps_x, new_steps_y, max_iter);
         };
 
         for (size_t i{0}; i != thread_count; i++) {
             threads[i] = std::thread{compute_and_write_to, i};
         }
 
-        for (auto& thread: threads) {
+        for (auto &thread: threads) {
             thread.join();
         }
-        return {};
-//        return std::accumulate();
+
+        auto result = std::make_tuple(0.0, 0.0, 0.0);
+        return std::accumulate(results.begin(), results.end(), result, [](auto first, auto second) {
+                                   return std::make_tuple(std::get<0>(first) + std::get<0>(second),
+                                                          std::get<1>(first) + std::get<1>(second),
+                                                          std::get<2>(first) + std::get<2>(second));
+                               }
+        );
     }
 
 }
