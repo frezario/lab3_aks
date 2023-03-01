@@ -4,8 +4,8 @@ import scipy
 from itertools import combinations
 
 
-def run_executable(func):
-    cmd = ["./build/integrate_serial", f"func{func}.cfg", str(func)]
+def run_executable(func, threads):
+    cmd = ["./build/integrate_serial", f"func{func}.cfg", str(func), str(threads)]
     result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout = result.stdout.decode("utf-8")
     exit_code = result.returncode
@@ -16,14 +16,24 @@ def run_executable(func):
         return stdout
 
 
-def analyze(repetitions):
+def parse_abs(func):
+    with open(f"func{func}.cfg", 'r') as f:
+        for line in f:
+            line = "".join(line.split(" ")).split("=")
+            if line[0] == 'abs_err':
+                return float(line[1])
+
+
+def analyze(arguments):
+    repetitions, threads = arguments
     results = []
     for func in range(1, 4):
         integrals, times = [0] * repetitions, [0] * repetitions
+        abs_err_conf = parse_abs(func)
         for i in range(repetitions):
-            integrals[i], abs_err, rel_err, times[i] = list(map(float, run_executable(func).strip().split("\n")))
+            integrals[i], abs_err, rel_err, times[i] = list(map(float, run_executable(func, threads).strip().split("\n")))
 
-        if all(abs(i - j) < 10 ** (-7) for i, j in combinations(integrals, 2)):
+        if all(abs(i - j) < abs_err_conf for i, j in combinations(integrals, 2)):
             results += [f"{integrals[0]}\n{abs_err}\n{rel_err}\n{int(min(times))}\n" +
                         f"{int(sum(times) / repetitions)}\n{int(scipy.stats.tstd(times)) if repetitions > 1 else 0}"]
         else:
@@ -32,11 +42,11 @@ def analyze(repetitions):
 
 
 def parser():
-    if len(sys.argv) == 2:
-        if int(sys.argv[1]) < 1:
-            print("Incorrect number of repetitions.")
+    if len(sys.argv) == 3:
+        if int(sys.argv[1]) < 1 or int(sys.argv[2]) < 1:
+            print("Incorrect number of repetitions or threads.")
             exit(1)
-        return int(sys.argv[1])
+        return int(sys.argv[1]), int(sys.argv[2])
     else:
         print("Incorrect amount of argument.")
         exit(1)
