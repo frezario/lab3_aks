@@ -1,0 +1,3 @@
+C:/Study/AKS/lab3/cmake-build-debug/CMakeFiles/integrate_parallel.dir
+C:/Study/AKS/lab3/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Study/AKS/lab3/cmake-build-debug/CMakeFiles/rebuild_cache.dir

@@ -1,0 +1,5 @@
+# ninja log v5
+2	10301	6993760074977163	CMakeFiles/integrate_parallel.dir/main.cpp.obj	9cc19b8c4a09746
+10333	11234	6993760084319229	integrate_parallel.exe	55f5eb527b05fa1e
+16	8045	6993761815461990	CMakeFiles/integrate_parallel.dir/main.cpp.obj	9cc19b8c4a09746
+8047	8463	6993761819622794	integrate_parallel.exe	55f5eb527b05fa1e
