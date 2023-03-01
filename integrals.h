@@ -65,7 +65,6 @@ namespace integrals {
             auto third = calculate_riemann_sum(function, x_start, x_end, y_start, y_end,
                                                steps_x, steps_y, delta_x / 2, delta_y / 2);
             second_riemann_sum = 0.25 * (first_riemann_sum + delta_x * delta_y * (first + second + third));
-//            std::cout << second_riemann_sum << " " << counter << std::endl;
             steps_x *= 2;
             steps_y *= 2;
             counter++;
@@ -86,7 +85,7 @@ namespace integrals {
     std::vector<double> divide_region(size_t n, double y_start, double y_end) {
         std::vector<double> regions(n + 1);
         for (size_t i = 0; i != n; i++) {
-            regions[i] = y_start + (double) i * ((y_end - y_start) / n);
+            regions[i] = y_start + (double) i * ((y_end - y_start) / (double) n);
         }
         regions[n] = y_end;
         return regions;
@@ -99,33 +98,118 @@ namespace integrals {
                                 double y_end, size_t init_steps_x,
                                 size_t init_steps_y, size_t max_iter) {
 
+        // creating the vector of threads to operate with
         std::vector<std::thread> threads(thread_count);
-        std::vector<std::tuple<double, double, double>> results(thread_count);
 
-        // dividing the region into smaller pieces
+        // creating the vector of parallel results to write into
+        std::vector<double> results(thread_count);
+
+        // creating the vector of regions
         auto regions = divide_region(thread_count, y_start, y_end);
-        auto new_steps_y = ceil((double)init_steps_y / (double)thread_count);
-        auto compute_and_write_to = [&function, abs_err, rel_err, x_start, x_end, &regions,
-                init_steps_x, new_steps_y, max_iter, &results](size_t idx) {
-            results[idx] = calculate_integral(function, abs_err, rel_err, x_start, x_end, regions[idx],
-                                              regions[idx + 1], init_steps_x, new_steps_y, max_iter);
+
+        // first step: dividing an interval and computing
+        // the initial value of the riemann sum over it
+        double first_riemann_sum = 0;
+        double second_riemann_sum = 0;
+        auto steps_x = init_steps_x;
+        auto steps_y = init_steps_y;
+        size_t counter = 0;
+
+        auto calculate_and_write = [&results, &function, &regions, &x_start, &x_end, &steps_x, &steps_y, &thread_count]
+                (size_t i, double shift_x, double shift_y) {
+            size_t new_steps_y = ceil((double)steps_y / (double)thread_count);
+            results[i] = calculate_riemann_sum(function, x_start, x_end, regions[i], regions[i + 1], steps_x,
+                                               new_steps_y, shift_x, shift_y);
         };
 
-        for (size_t i{0}; i != thread_count; i++) {
-            threads[i] = std::thread{compute_and_write_to, i};
-        }
+        // Again we're first calculating the first term, then second, then third, and
+        // use the obtained optimized formula to obtain result. If the result is
+        // not "good" enough, we just try again. But in this case, each call of
+        // calculate_riemann_sum() function will be parallelized by the number of
+        // thread given.
 
-        for (auto &thread: threads) {
-            thread.join();
-        }
+        do {
+            auto delta_x = (x_end - x_start) / (double) steps_x;
+            auto delta_y = (y_end - y_start) / (double) steps_y;
 
-        auto result = std::make_tuple(0.0, 0.0, 0.0);
-        return std::accumulate(results.begin(), results.end(), result, [](auto first, auto second) {
-                                   return std::make_tuple(std::get<0>(first) + std::get<0>(second),
-                                                          std::get<1>(first) + std::get<1>(second),
-                                                          std::get<2>(first) + std::get<2>(second));
-                               }
-        );
+            if (counter == 0) {
+                first_riemann_sum = delta_x * delta_y *
+                                    calculate_riemann_sum(function, x_start, x_end, y_start, y_end, steps_x, steps_y);
+            } else {
+                first_riemann_sum = second_riemann_sum;
+            }
+
+            /*
+             * Calculating the first term
+             * */
+
+            // calling function calculate_riemann_sum in threads
+            for (size_t i = 0; i != threads.size(); i++) {
+                threads[i] = std::thread{calculate_and_write, i, delta_x / 2, 0};
+            }
+
+            // waiting for them to finish
+
+            for (auto &thread: threads) {
+                thread.join();
+            }
+
+            // adding up results to get first term
+            auto first = std::accumulate(results.begin(), results.end(), 0.0);
+
+            /*
+             * Calculating the second term
+             * */
+
+            // calling function calculate_riemann_sum in threads
+            for (size_t i = 0; i != threads.size(); i++) {
+                threads[i] = std::thread{calculate_and_write, i, 0, delta_y / 2};
+            }
+
+            // waiting for them to finish
+
+            for (auto &thread: threads) {
+                thread.join();
+            }
+
+            // adding up results to get first term
+            auto second = std::accumulate(results.begin(), results.end(), 0.0);
+
+            /*
+             * Calculating the third term
+             * */
+
+            // calling function calculate_riemann_sum in threads
+            for (size_t i = 0; i != threads.size(); i++) {
+                threads[i] = std::thread{calculate_and_write, i, delta_x / 2, delta_y / 2};
+            }
+
+            // waiting for them to finish
+
+            for (auto &thread: threads) {
+                thread.join();
+            }
+
+            // adding up results to get first term
+            auto third = std::accumulate(results.begin(), results.end(), 0.0);
+
+
+//            auto first = calculate_riemann_sum(function, x_start, x_end, y_start, y_end,
+//                                               steps_x, steps_y, delta_x / 2, 0);
+//            auto second = calculate_riemann_sum(function, x_start, x_end, y_start, y_end,
+//                                                steps_x, steps_y, 0, delta_y / 2);
+//            auto third = calculate_riemann_sum(function, x_start, x_end, y_start, y_end,
+//                                               steps_x, steps_y, delta_x / 2, delta_y / 2);
+            second_riemann_sum = 0.25 * (first_riemann_sum + delta_x * delta_y * (first + second + third));
+            steps_x *= 2;
+            steps_y *= 2;
+            counter++;
+        } while ((fabs(second_riemann_sum - first_riemann_sum) > abs_err &&
+                  fabs((second_riemann_sum - first_riemann_sum) / second_riemann_sum) > rel_err) ||
+                 counter < max_iter);
+
+        return std::make_tuple(second_riemann_sum, fabs(second_riemann_sum - first_riemann_sum),
+                               fabs((second_riemann_sum - first_riemann_sum) / second_riemann_sum));
     }
 
 }
