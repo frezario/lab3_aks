@@ -28,8 +28,9 @@ What we achieved by the parallelization is the significant performance boost, wh
 
 Here you can see the graph which represent the performance (in time) on the team member's machine (MacBook Pro 2019, Intel Core i5-8257u, 4 cores):
 
-And here you can see the table which shows the impact of parralellism on the performance:
+![image](https://user-images.githubusercontent.com/92572643/222451303-01dd85ee-3ec2-4fa0-9fa6-1dfb6473c349.png)
 
+And here you can see the table which shows the impact of parralellism on the performance:
 
 <table>
   <tr>
