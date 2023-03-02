@@ -112,7 +112,8 @@ namespace integrals {
         double first_riemann_sum = 0;
         double second_riemann_sum = 0;
         auto steps_x = init_steps_x;
-        auto steps_y = init_steps_y;
+        // making the number of steps over y be divisible by threads
+        auto steps_y = init_steps_y + (thread_count - init_steps_y % thread_count);
         size_t counter = 0;
 
         auto calculate_and_write = [&results, &function, &regions, &x_start, &x_end, &steps_x, &steps_y, &thread_count]
