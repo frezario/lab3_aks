@@ -5,7 +5,7 @@ from itertools import combinations
 
 
 def run_executable(func, threads):
-    cmd = ["./build/integrate_serial", f"func{func}.cfg", str(func), str(threads)]
+    cmd = ["./build/integrate_parallel", f"func{func}.cfg", str(func), str(threads)]
     result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout = result.stdout.decode("utf-8")
     exit_code = result.returncode
@@ -19,7 +19,7 @@ def run_executable(func, threads):
 def parse_abs(func):
     with open(f"func{func}.cfg", 'r') as f:
         for line in f:
-            line = "".join(line.split(" ")).split("=")
+            line = "".join(line.split("#")[0].split(" ")).split("=")
             if line[0] == 'abs_err':
                 return float(line[1])
 
