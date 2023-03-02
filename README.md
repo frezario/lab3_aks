@@ -26,9 +26,9 @@ python3 runner.py 3 4
 
 What we achieved by the parallelization is the significant performance boost, which, in fact, when the number of threads dedicated to program is chosen properly, grows linearly.
 
-Here you can see the graph which represent the performance (in time) on the team member's machine (MacBook Pro 2019, Intel Core i5-8257u, 4 cores):
+Here you can see the graph which represents the performance (in time) on the team member's machine (MacBook Pro 2019, Intel Core i5-8257u, 4 cores):
 
-![image](https://user-images.githubusercontent.com/92572643/222451303-01dd85ee-3ec2-4fa0-9fa6-1dfb6473c349.png)
+![image](https://user-images.githubusercontent.com/91615650/222451832-c035b3e7-b482-4a02-8e40-66f4586c2570.png)
 
 And here you can see the table which shows the impact of parralellism on the performance:
 
