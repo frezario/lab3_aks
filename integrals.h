@@ -134,8 +134,20 @@ namespace integrals {
             auto delta_y = (y_end - y_start) / (double) steps_y;
 
             if (counter == 0) {
+                // calculating the Riemann sum for the first time
+
+                // calling function calculate_riemann_sum in threads
+                for (size_t i = 0; i != threads.size(); i++) {
+                    threads[i] = std::thread{calculate_and_write, i, delta_x / 2, 0};
+                }
+
+                // waiting for them to finish
+
+                for (auto &thread: threads) {
+                    thread.join();
+                }
                 first_riemann_sum = delta_x * delta_y *
-                                    calculate_riemann_sum(function, x_start, x_end, y_start, y_end, steps_x, steps_y);
+                        std::accumulate(results.begin(), results.end(), 0.0);
             } else {
                 first_riemann_sum = second_riemann_sum;
             }
