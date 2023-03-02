@@ -84,6 +84,6 @@ The absence of race conditions can be also easily verified by the fact, that the
 It is worth mentioning that although we have achieved good improvement in performance, the absolute error has become a little larger. There can be at least two possible explainings:
 
 <ul>
-  <li>the error that accumulates when adding a large amount of ```double```'s</li>
+  <li>the error that accumulates when adding a large amount of ```double``` 's</li>
   <li>the way we divide our subregions into rectangles (from the beggining we don't divide the region into the specified amount in .cfg file, but into the amount such that each region contains equal numbers of rectangles)</li>
 </ul>
