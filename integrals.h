@@ -82,14 +82,7 @@ namespace integrals {
      * where y_start means the lower y bound of the smaller region,
      * and y_end - the upper one.
      * */
-    std::vector<double> divide_region(size_t n, double y_start, double y_end) {
-        std::vector<double> regions(n + 1);
-        for (size_t i = 0; i != n; i++) {
-            regions[i] = y_start + (double) i * ((y_end - y_start) / (double) n);
-        }
-        regions[n] = y_end;
-        return regions;
-    }
+    std::vector<double> divide_region(size_t n, double y_start, double y_end);
 
     template<class F>
     std::tuple<double, double, double>
@@ -138,7 +131,7 @@ namespace integrals {
 
                 // calling function calculate_riemann_sum in threads
                 for (size_t i = 0; i != threads.size(); i++) {
-                    threads[i] = std::thread{calculate_and_write, i, delta_x / 2, 0};
+                    threads[i] = std::thread{calculate_and_write, i, 0, 0};
                 }
 
                 // waiting for them to finish
@@ -206,13 +199,6 @@ namespace integrals {
             // adding up results to get first term
             auto third = std::accumulate(results.begin(), results.end(), 0.0);
 
-
-//            auto first = calculate_riemann_sum(function, x_start, x_end, y_start, y_end,
-//                                               steps_x, steps_y, delta_x / 2, 0);
-//            auto second = calculate_riemann_sum(function, x_start, x_end, y_start, y_end,
-//                                                steps_x, steps_y, 0, delta_y / 2);
-//            auto third = calculate_riemann_sum(function, x_start, x_end, y_start, y_end,
-//                                               steps_x, steps_y, delta_x / 2, delta_y / 2);
             second_riemann_sum = 0.25 * (first_riemann_sum + delta_x * delta_y * (first + second + third));
             steps_x *= 2;
             steps_y *= 2;
