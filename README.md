@@ -81,9 +81,17 @@ Additionally, we checked our program for the presence of memory leaks, undefined
 
 The absence of race conditions can be also easily verified by the fact, that the result is unchanged every time the program is run.
 
-It is worth mentioning that although we have achieved good improvement in performance, the absolute error has become a little larger. There can be at least two possible explainings:
+It is worth mentioning that although we have achieved good improvement in performance, the absolute error has become a little bit larger. There can be at least two possible explainings:
 
 <ul>
   <li>the error that accumulates when adding a large amount of double's</li>
   <li>the way we divide our subregions into rectangles (from the beggining we don't divide the region into the specified amount in .cfg file, but into the amount such that each region contains equal numbers of rectangles)</li>
 </ul>
+
+We also used the optimization of the integral calculation, which speeds up the performance by 25% (we can reuse the previous estimated value of integral to achieve this). Since in the formula for this optimization:
+
+```c++
+second_riemann_sum = 0.25 * (first_riemann_sum + delta_x * delta_y * (first + second + third));
+```
+
+... we have first, second and third terms, which are the results of riemann sum itself (with corresponding shifts), we're parallelizing each of these by dividing the calculation of calculate_riemann_sum() function over all threads given.
